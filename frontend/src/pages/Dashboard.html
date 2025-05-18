@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maxmarket - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        body {
+            zoom: 0.75;
+            -moz-transform: scale(0.75);
+            -moz-transform-origin: 0 0;
+        }
+    </style>
+</head>
+<body class="bg-[#0d1117] text-white">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-48 bg-[#161b22] border-r border-gray-800 flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0 -translate-x-full z-50">
+        <div class="p-4 border-b border-gray-800">
+            <div id="userEmail" class="font-medium truncate">Loading...</div>
+        </div>
+        <nav class="mt-4 flex-grow">
+            <a href="/dashboard" class="flex items-center px-4 py-2 bg-blue-500">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="/crypto-trading" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                Crypto Trading
+            </a>
+            <a href="/stock-trading" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Stock Trading
+            </a>
+            <a href="/history" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Trade History
+            </a>
+            <a href="/deposit" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Deposit
+            </a>
+            <a href="/withdraw" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Withdraw
+            </a>
+        </nav>
+        <div class="p-4 border-t border-gray-800">
+            <button onclick="logout()" class="w-full py-2 px-4 bg-red-500 text-white rounded text-sm hover:bg-red-600">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-[#161b22] border-b border-gray-800 z-40">
+        <div class="flex items-center justify-between p-4">
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <img src="/assets/logo.png" alt="maxmarket" class="h-8">
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="md:ml-48 p-4 mt-16 md:mt-0">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
+            <!-- Asset Prices -->
+            <div class="flex flex-wrap gap-4 w-full md:w-auto">
+                <!-- BTC Price -->
+                <div class="flex items-center space-x-2">
+                    <div class="text-sm text-gray-400">BTC/USDT</div>
+                    <div id="btcPrice" class="text-green-500">Loading...</div>
+                </div>
+                <!-- ETH Price -->
+                <div class="flex items-center space-x-2">
+                    <div class="text-sm text-gray-400">ETH/USDT</div>
+                    <div id="ethPrice" class="text-green-500">Loading...</div>
+                </div>
+                <!-- SOL Price -->
+                <div class="flex items-center space-x-2">
+                    <div class="text-sm text-gray-400">SOL/USDT</div>
+                    <div id="solPrice" class="text-green-500">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Balance and Trade Button -->
+            <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="text-sm text-gray-400">Balance:</div>
+                        <div id="userBalance" class="font-bold">Loading...</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="text-sm text-gray-400">P/L:</div>
+                        <div id="totalProfitLoss" class="font-bold">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Place Trade Button -->
+                <div class="relative w-full md:w-auto">
+                    <button onclick="toggleTradeDropdown()" 
+                        class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center justify-center">
+                        <span>Place Trade</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="tradeDropdown" 
+                        class="hidden absolute right-0 mt-2 w-48 bg-[#1f2937] rounded-lg shadow-lg overflow-hidden z-50">
+                        <a href="/crypto-trading" 
+                            class="flex items-center px-4 py-3 text-white hover:bg-[#374151] border-b border-gray-700">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                            Crypto Trading
+                        </a>
+                        <a href="/stock-trading" 
+                            class="flex items-center px-4 py-3 text-white hover:bg-[#374151]">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Stock Trading
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading View Chart -->
+        <div class="bg-[#161b22] rounded-lg p-4 mb-6">
+            <div id="tradingview_chart" class="w-full h-[400px] md:h-[600px]"></div>
+        </div>
+
+        <!-- Trading Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Trading Stats -->
+            <div class="bg-[#161b22] rounded-lg p-4">
+                <h2 class="text-lg font-bold mb-4">Trading Stats</h2>
+                <div class="space-y-4">
+                    <div class="p-4 bg-[#1f2937] rounded">
+                        <div class="text-sm text-gray-400">Win Rate</div>
+                        <div id="winRate" class="text-xl font-bold text-green-500">Loading...</div>
+                    </div>
+                    <div class="p-4 bg-[#1f2937] rounded">
+                        <div class="text-sm text-gray-400">Total Trades</div>
+                        <div id="totalTrades" class="text-xl font-bold">Loading...</div>
+                    </div>
+                    <div class="p-4 bg-[#1f2937] rounded">
+                        <div class="text-sm text-gray-400">Best Trade</div>
+                        <div id="bestTrade" class="text-xl font-bold text-green-500">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market News -->
+            <div class="bg-[#161b22] rounded-lg p-4">
+                <h2 class="text-lg font-bold mb-4">Market News</h2>
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                </div>
+            </div>
+
+            <!-- Recent Trades -->
+            <div class="bg-[#161b22] rounded-lg p-4">
+                <h2 class="text-lg font-bold mb-4">Recent Trades</h2>
+                <div id="recentTrades" class="space-y-2">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        let priceWebSockets = {};
+
+        // Initialize WebSocket for multiple assets
+        function initializePriceWebSockets() {
+            const assets = ['btc', 'eth', 'sol'];
+            
+            assets.forEach(asset => {
+                const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${asset}usdt@ticker`);
+                
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    const price = parseFloat(data.c).toFixed(2);
+                    const priceChange = parseFloat(data.P).toFixed(2);
+                    const color = parseFloat(priceChange) >= 0 ? 'text-green-500' : 'text-red-500';
+                    
+                    const element = document.getElementById(`${asset}Price`);
+                    element.className = color;
+                    element.textContent = `$${price} ${priceChange}%`;
+                };
+
+                priceWebSockets[asset] = ws;
+            });
+        }
+
+        // Toggle trade dropdown
+        function toggleTradeDropdown() {
+            const dropdown = document.getElementById('tradeDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            const dropdown = document.getElementById('tradeDropdown');
+            const button = event.target.closest('button');
+            
+            if (!button && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Check authentication
+        (async function() {
+            if (!await checkAuth()) {
+                return;
+            }
+            
+            // Initialize page components
+            initializePriceWebSockets();
+            initializeTradingView();
+            fetchUserData();
+            
+            // Update data every 5 seconds
+            setInterval(fetchUserData, 5000);
+        })();
+
+        // Fetch user data and update UI
+        async function fetchUserData() {
+            try {
+                const [userResponse, tradesCountResponse] = await Promise.all([
+                    fetch('/api/auth/verify', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    }),
+                    fetch('/api/trading/trades/count', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    })
+                ]);
+
+                const userData = await userResponse.json();
+                const tradesCount = await tradesCountResponse.json();
+                
+                if (userData.valid) {
+                    document.getElementById('userEmail').textContent = userData.user.email;
+                    document.getElementById('userBalance').textContent = `$${userData.user.balance.toFixed(2)}`;
+                    
+                    // Update trading stats
+                    if (userData.stats) {
+                        document.getElementById('winRate').textContent = `${userData.stats.winRate}%`;
+                        
+                        // Update total trades with the correct count
+                        const totalTradesElement = document.getElementById('totalTrades');
+                        totalTradesElement.textContent = tradesCount.totalTrades || 0;
+                        totalTradesElement.className = 'text-xl font-bold';
+                        
+                        const profitLossElement = document.getElementById('totalProfitLoss');
+                        const profitLoss = userData.stats.totalProfitLoss || 0;
+                        profitLossElement.textContent = `${profitLoss >= 0 ? '+' : ''}$${profitLoss.toFixed(2)}`;
+                        profitLossElement.className = `text-xl font-bold ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`;
+                    }
+
+                    // Update recent trades
+                    if (userData.recentTrades) {
+                        document.getElementById('recentTrades').innerHTML = userData.recentTrades.map(trade => `
+                            <div class="flex justify-between items-center p-2 bg-[#1f2937] rounded">
+                                <div>
+                                    <div>${trade.symbol}</div>
+                                    <div class="text-sm text-gray-400">Amount: $${trade.amount}</div>
+                                </div>
+                                <div class="text-${trade.profitLoss >= 0 ? 'green' : 'red'}-500">
+                                    ${trade.profitLoss >= 0 ? '+' : ''}$${trade.profitLoss.toFixed(2)}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Find and display best trade
+                    const bestTrade = userData.recentTrades.reduce((best, trade) => 
+                        (!best || trade.profitLoss > best.profitLoss) ? trade : best, null);
+                    if (bestTrade) {
+                        document.getElementById('bestTrade').textContent = 
+                            `$${bestTrade.profitLoss.toFixed(2)} (${bestTrade.symbol})`;
+                    }
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                logout();
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        // Cleanup WebSockets on page unload
+        window.addEventListener('beforeunload', () => {
+            Object.values(priceWebSockets).forEach(ws => ws.close());
+        });
+
+        // Initialize TradingView widget
+        function initializeTradingView() {
+            new TradingView.widget({
+                "container_id": "tradingview_chart",
+                "autosize": true,
+                "symbol": "BINANCE:BTCUSDT",
+                "interval": "1",
+                "timezone": "exchange",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#161b22",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "save_image": false,
+                "studies": [
+                    "RSI@tv-basicstudies",
+                    "MASimple@tv-basicstudies",
+                    "MACD@tv-basicstudies"
+                ],
+                "show_popup_button": false,
+                "popup_width": "1000",
+                "popup_height": "650",
+                "hide_volume": false,
+            });
+
+            // Initialize News Timeline Widget
+            const script = document.createElement('script');
+            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "feedMode": "all_symbols",
+                "isTransparent": false,
+                "displayMode": "regular",
+                "width": "100%",
+                "height": 400,
+                "colorTheme": "dark",
+                "locale": "en"
+            });
+            
+            document.querySelector('.tradingview-widget-container__widget').appendChild(script);
+        }
+
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (event) => {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarButton = event.target.closest('button');
+            
+            if (!sidebar.contains(event.target) && !sidebarButton && window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+            }
+        });
+
+        // Add overlay for mobile when sidebar is open
+        function createOverlay() {
+            const overlay = document.createElement('div');
+            overlay.id = 'sidebar-overlay';
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden hidden';
+            overlay.onclick = toggleSidebar;
+            document.body.appendChild(overlay);
+        }
+
+        // Toggle overlay with sidebar
+        const originalToggleSidebar = toggleSidebar;
+        toggleSidebar = () => {
+            originalToggleSidebar();
+            const overlay = document.getElementById('sidebar-overlay');
+            overlay.classList.toggle('hidden');
+        };
+
+        // Initialize overlay
+        createOverlay();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maxmarket - Deposit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* Add same glassmorphism styles as above */
+        
+        /* Update form elements */
+        .form-input {
+            background: rgba(13, 17, 23, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-[#0d1117] text-white">
+    <div class="max-w-4xl mx-auto p-8">
+        <div class="flex items-center mb-8">
+            <a href="/dashboard" class="text-gray-400 hover:text-white flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-8">Deposit Funds</h1>
+
+        <div class="glass rounded-lg p-6 shadow-lg">
+            <!-- Currency Selection -->
+            <div class="flex space-x-2 mb-6">
+                <button onclick="selectCurrency('BTC')" id="btcBtn" 
+                    class="px-4 py-2 rounded bg-blue-500 text-white">BTC</button>
+                <button onclick="selectCurrency('ETH')" id="ethBtn"
+                    class="px-4 py-2 rounded bg-[#0d1117] text-gray-400">ETH</button>
+                <button onclick="selectCurrency('USDT')" id="usdtBtn"
+                    class="px-4 py-2 rounded bg-[#0d1117] text-gray-400">USDT</button>
+                <button onclick="selectCurrency('BNB')" id="bnbBtn"
+                    class="px-4 py-2 rounded bg-[#0d1117] text-gray-400">BNB</button>
+                <button onclick="selectCurrency('SOL')" id="solBtn"
+                    class="px-4 py-2 rounded bg-[#0d1117] text-gray-400">SOL</button>
+            </div>
+
+            <!-- Deposit Form -->
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Amount to Deposit</label>
+                    <div class="flex">
+                        <input type="number" id="amount" min="0" step="0.000001"
+                            class="form-input flex-1 px-3 py-2 rounded-l border border-gray-700">
+                        <span id="currencyLabel" 
+                            class="px-3 py-2 bg-[#1f2937] border border-l-0 border-gray-700 rounded-r">
+                            BTC
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Wallet Address</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="walletAddress" readonly
+                            class="form-input flex-1 px-3 py-2 rounded border border-gray-700">
+                        <button onclick="copyAddress()" class="p-2 bg-[#1f2937] rounded hover:bg-[#2d3748]">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- QR Code -->
+                <div class="flex justify-center py-6">
+                    <div id="qrcode" class="w-48 h-48 flex items-center justify-center bg-white p-2 rounded"></div>
+                </div>
+
+                <div class="bg-[#1f2937] p-4 rounded">
+                    <h3 class="text-yellow-500 font-medium mb-2">Important</h3>
+                    <ul class="text-sm text-gray-300 space-y-1">
+                        <li>• Send only <span id="currencyWarning">BTC</span> to this deposit address</li>
+                        <li>• Ensure the network is <span id="networkWarning">Bitcoin Network</span></li>
+                        <li>• Minimum deposit: <span id="minDeposit">0.001 BTC</span></li>
+                        <li>• Your deposit will be credited after network confirmation</li>
+                    </ul>
+                </div>
+
+                <button onclick="confirmDeposit()" 
+                    class="w-full py-3 bg-blue-500 rounded font-medium hover:bg-blue-600">
+                    Confirm Deposit
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Deposits -->
+        <div class="mt-8 bg-[#161b22] rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Recent Deposits</h2>
+            <div id="recentDeposits" class="space-y-3">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentCurrency = '';
+        let systemWallets = [];
+
+        // Fetch available currencies
+        async function fetchCurrencies() {
+            try {
+                const response = await fetch('/api/deposit/currencies', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                systemWallets = await response.json();
+                
+                // Render currency buttons
+                const buttonsHtml = systemWallets.map((wallet, index) => `
+                    <button onclick="selectCurrency('${wallet.currency}')" 
+                        id="${wallet.currency.toLowerCase()}Btn"
+                        class="px-4 py-2 rounded ${index === 0 ? 'bg-blue-500 text-white' : 'bg-[#0d1117] text-gray-400'}">
+                        ${wallet.currency}
+                    </button>
+                `).join('');
+                
+                document.getElementById('currencyButtons').innerHTML = buttonsHtml;
+                
+                // Select first currency by default
+                if (systemWallets.length > 0) {
+                    selectCurrency(systemWallets[0].currency);
+                }
+            } catch (error) {
+                console.error('Error fetching currencies:', error);
+            }
+        }
+
+        function selectCurrency(currency) {
+            currentCurrency = currency;
+            
+            // Update UI elements
+            document.querySelectorAll('button[id$="Btn"]').forEach(btn => {
+                btn.className = btn.id === `${currency.toLowerCase()}Btn` 
+                    ? 'px-4 py-2 rounded bg-blue-500 text-white'
+                    : 'px-4 py-2 rounded bg-[#0d1117] text-gray-400';
+            });
+
+            const selectedWallet = systemWallets.find(w => w.currency === currency);
+            
+            document.getElementById('currencyLabel').textContent = currency;
+            document.getElementById('currencyWarning').textContent = currency;
+            document.getElementById('networkWarning').textContent = selectedWallet.network;
+            document.getElementById('minDeposit').textContent = `${selectedWallet.minDeposit} ${currency}`;
+
+            // Fetch and update wallet address
+            fetchWalletAddress(currency);
+        }
+
+        function generateQRCode(address) {
+            // Clear previous QR code if any
+            document.getElementById('qrcode').innerHTML = '';
+            
+            // Generate new QR code
+            new QRCode(document.getElementById('qrcode'), {
+                text: address,
+                width: 192,
+                height: 192,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        async function fetchWalletAddress(currency) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/deposit/wallet-address/${currency}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                
+                const address = data.address;
+                document.getElementById('walletAddress').value = address;
+                generateQRCode(address);
+            } catch (error) {
+                console.error('Error fetching wallet address:', error);
+            }
+        }
+
+        function copyAddress() {
+            const address = document.getElementById('walletAddress');
+            address.select();
+            document.execCommand('copy');
+            alert('Address copied to clipboard!');
+        }
+
+        async function confirmDeposit() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/deposit/confirm', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        currency: currentCurrency,
+                        amount: document.getElementById('amount').value,
+                        walletAddress: document.getElementById('walletAddress').value
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Deposit confirmation submitted successfully!');
+                    fetchRecentDeposits();
+                } else {
+                    const data = await response.json();
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error confirming deposit:', error);
+                alert('Failed to confirm deposit');
+            }
+        }
+
+        async function fetchRecentDeposits() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/deposit/recent', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const deposits = await response.json();
+                
+                document.getElementById('recentDeposits').innerHTML = deposits
+                    .map(deposit => `
+                        <div class="bg-[#0d1117] p-4 rounded">
+                            <div class="flex justify-between mb-2">
+                                <span>${deposit.amount} ${deposit.currency}</span>
+                                <span class="px-2 py-1 rounded text-xs ${
+                                    deposit.status === 'completed' ? 'bg-green-500' : 
+                                    'bg-yellow-500'}">${deposit.status}</span>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                ${new Date(deposit.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('');
+            } catch (error) {
+                console.error('Error fetching recent deposits:', error);
+            }
+        }
+
+        // Initialize page
+        fetchCurrencies();
+        fetchRecentDeposits();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maxmarket - Trade History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            zoom: 0.75;
+            -moz-transform: scale(0.75);
+            -moz-transform-origin: 0 0;
+        }
+    </style>
+</head>
+<body class="bg-[#0d1117] text-white">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-48 bg-[#161b22] border-r border-gray-800 flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0 -translate-x-full z-50">
+        <div class="p-4 border-b border-gray-800">
+            <div id="userEmail" class="font-medium truncate">Loading...</div>
+        </div>
+        <nav class="mt-4 flex-grow">
+            <a href="/dashboard" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="/crypto-trading" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                Crypto Trading
+            </a>
+            <a href="/stock-trading" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Stock Trading
+            </a>
+            <a href="/history" class="flex items-center px-4 py-2 bg-blue-500">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Trade History
+            </a>
+            <a href="/deposit" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Deposit
+            </a>
+            <a href="/withdraw" class="flex items-center px-4 py-2 text-gray-400 hover:bg-[#1f2937]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Withdraw
+            </a>
+        </nav>
+        <div class="p-4 border-t border-gray-800">
+            <button onclick="logout()" class="w-full py-2 px-4 bg-red-500 text-white rounded text-sm hover:bg-red-600">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-[#161b22] border-b border-gray-800 z-40">
+        <div class="flex items-center justify-between p-4">
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <img src="/assets/logo.png" alt="maxmarket" class="h-8">
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="md:ml-48 p-4 mt-16 md:mt-0">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
+            <h1 class="text-2xl font-bold">Trade History</h1>
+            
+            <!-- Filters -->
+            <div class="flex flex-wrap gap-4">
+                <select id="typeFilter" class="bg-[#1f2937] border border-gray-700 rounded px-3 py-2">
+                    <option value="all">All Types</option>
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                </select>
+                <select id="statusFilter" class="bg-[#1f2937] border border-gray-700 rounded px-3 py-2">
+                    <option value="all">All Status</option>
+                    <option value="win">Win</option>
+                    <option value="loss">Loss</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Trade History Table -->
+        <div class="bg-[#161b22] rounded-lg p-4">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left border-b border-gray-700">
+                            <th class="pb-3">Symbol</th>
+                            <th class="pb-3">Type</th>
+                            <th class="pb-3">Amount</th>
+                            <th class="pb-3">Profit/Loss</th>
+                            <th class="pb-3">Status</th>
+                            <th class="pb-3">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradeHistory">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="mt-4">
+            <!-- Pagination controls will be dynamically added here -->
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // Add pagination state
+        let currentPage = 1;
+        const itemsPerPage = 5;
+
+        // Initialize page
+        async function initialize() {
+            await fetchTradeHistory();
+            
+            // Add filter event listeners
+            document.getElementById('typeFilter').addEventListener('change', () => {
+                currentPage = 1; // Reset to first page when filter changes
+                fetchTradeHistory();
+            });
+            document.getElementById('statusFilter').addEventListener('change', () => {
+                currentPage = 1; // Reset to first page when filter changes
+                fetchTradeHistory();
+            });
+        }
+
+        // Fetch trade history
+        async function fetchTradeHistory() {
+            try {
+                const type = document.getElementById('typeFilter').value;
+                const status = document.getElementById('statusFilter').value;
+                
+                const response = await fetch(`/api/trading/trade-history?type=${type}&status=${status}&page=${currentPage}&limit=${itemsPerPage}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.trades) {
+                    throw new Error('Invalid response format');
+                }
+
+                const trades = data.trades;
+                const totalTrades = data.total;
+                const totalPages = Math.ceil(totalTrades / itemsPerPage);
+                
+                const tbody = document.getElementById('tradeHistory');
+                
+                if (trades.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-gray-400">
+                                No trade history found
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('pagination').innerHTML = '';
+                    return;
+                }
+
+                tbody.innerHTML = trades.map(trade => `
+                    <tr class="border-b border-gray-700">
+                        <td class="py-3">${trade.symbol}</td>
+                        <td class="py-3">${trade.type.toUpperCase()}</td>
+                        <td class="py-3">$${trade.amount.toFixed(2)}</td>
+                        <td class="py-3 ${trade.profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${trade.profitLoss >= 0 ? '+' : ''}$${trade.profitLoss.toFixed(2)}
+                        </td>
+                        <td class="py-3">
+                            <span class="px-2 py-1 rounded text-xs ${trade.profitLoss >= 0 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}">
+                                ${trade.profitLoss >= 0 ? 'WIN' : 'LOSS'}
+                            </span>
+                        </td>
+                        <td class="py-3">${new Date(trade.createdAt).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+
+                // Update pagination
+                updatePagination(totalPages);
+
+            } catch (error) {
+                console.error('Error fetching trade history:', error);
+                document.getElementById('tradeHistory').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-red-500">
+                            Error loading trade history: ${error.message}
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('pagination').innerHTML = '';
+            }
+        }
+
+        // Update pagination controls
+        function updatePagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            let paginationHtml = '';
+
+            if (totalPages > 1) {
+                paginationHtml = `
+                    <div class="flex items-center justify-center space-x-2 mt-4">
+                        <button 
+                            onclick="changePage(${currentPage - 1})"
+                            class="px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}"
+                            ${currentPage === 1 ? 'disabled' : ''}>
+                            Previous
+                        </button>
+                        <span class="text-gray-400">Page ${currentPage} of ${totalPages}</span>
+                        <button 
+                            onclick="changePage(${currentPage + 1})"
+                            class="px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}"
+                            ${currentPage === totalPages ? 'disabled' : ''}>
+                            Next
+                        </button>
+                    </div>
+                `;
+            }
+
+            pagination.innerHTML = paginationHtml;
+        }
+
+        // Change page function
+        function changePage(newPage) {
+            currentPage = newPage;
+            fetchTradeHistory();
+        }
+
+        // Fetch user data and update UI
+        async function fetchUserData() {
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.valid) {
+                    document.getElementById('userEmail').textContent = data.user.email;
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                logout();
+            }
+        }
+
+        // Update initialization
+        (async function() {
+            if (!await checkAuth()) {
+                return;
+            }
+            
+            initialize();
+            createOverlay();
+            fetchUserData();
+            
+            // Update data periodically
+            setInterval(fetchTradeHistory, 30000);
+            setInterval(fetchUserData, 5000);
+        })();
+
+        // Sidebar functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (event) => {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarButton = event.target.closest('button');
+            
+            if (!sidebar.contains(event.target) && !sidebarButton && window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+            }
+        });
+
+        // Add overlay for mobile when sidebar is open
+        function createOverlay() {
+            const overlay = document.createElement('div');
+            overlay.id = 'sidebar-overlay';
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden hidden';
+            overlay.onclick = toggleSidebar;
+            document.body.appendChild(overlay);
+        }
+    </script>
+</body>
+</html> 
