@@ -6,10 +6,12 @@ const bcrypt = require('bcryptjs');
 const Trade = require('../models/Trade');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.zoho.com',
+  port: 465,
+  secure: true, // use SSL
   auth: {
-    user: process.env.EMAIL_USERNAME,
-    pass: process.env.EMAIL_APP_PASSWORD
+    user: process.env.ZOHO_EMAIL,
+    pass: process.env.ZOHO_APP_PASSWORD
   }
 });
 
@@ -45,12 +47,12 @@ console.log(password)
 
     // Send welcome email
     const mailOptions = {
-      from: process.env.EMAIL_USERNAME,
+      from: process.env.ZOHO_EMAIL,
       to: email,
-      subject: 'Welcome! 🚀',
+      subject: 'Welcome to MaxMarket! 🚀',
       html: `
         <div style="font-family: Arial, sans-serif; color: #333;">
-          <h2>Welcome to Maxmarkets, ${fullName}! 🎉</h2>
+          <h2>Welcome to MaxMarket, ${fullName}! 🎉</h2>
           
           <p>Thank you for joining our trading platform. We're excited to have you on board!</p>
           
@@ -81,6 +83,7 @@ console.log(password)
 
     try {
       await transporter.sendMail(mailOptions);
+      console.log('Welcome email sent successfully');
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError);
       // Continue with registration even if email fails
